@@ -1,0 +1,90 @@
+packaging_format = 2
+
+id = "scribe"
+name = "Scribe"
+description.en = "Automated audio transcription server (including subtitles) automatique based on Vosk project."
+description.fr = "Serveur de transcription audio (dont soustitres) automatique basé sur le projet Vosk."
+
+version = "1.0~ynh1"
+
+maintainers = ["Lapineige"]
+
+[upstream]
+license = "AGLPv3"
+demo = "https://scribe.cemea.org/"
+code = "https://gitlab.cemea.org/mallette/scribe"
+
+[integration]
+yunohost = ">= 11.1.14"
+architectures = ["amd64", "arm64"]
+multi_instance = false
+ldap = "not_relevant"
+sso = "not_relevant"
+# FIXME: replace with an **estimate** minimum disk and RAM requirements. e.g. 20M, 400M, 1G...
+disk = "50M"
+ram.build = "50M"
+ram.runtime = "5000M"
+
+[install]
+    [install.domain]
+    # this is a generic question - ask strings are automatically handled by YunoHost's core
+    type = "domain"
+
+    [install.path]
+    # this is a generic question - ask strings are automatically handled by YunoHost's core
+    type = "path"
+    default = "/example"
+
+    [install.init_main_permission]
+    # this is a generic question - ask strings are automatically handled by YunoHost's core
+    # This won't be saved as setting and will instead be used to initialize the SSOwat permission
+    type = "group"
+    default = "visitors"
+
+    [install.language]
+    ask.en = "Choose the application language"
+    ask.fr = "Choisissez la langue de l'application"
+    type = "string"
+    choices = ["fr", "en"]
+    default = "fr"
+
+[resources]
+
+    [resources.sources]
+
+        [resources.sources.main]
+        # This will pre-fetch the asset which can then be deployed during the install/upgrade scripts with :
+        #    ynh_setup_source --dest_dir="$install_dir"
+        # You can also define other assets than "main" and add --source_id="foobar" in the previous command
+        url = "https://gitlab.cemea.org/mallette/scribe/-/archive/master/scribe-master.tar.gz"
+        sha256 = "42879154c8c6b9a0301beafac76c49c3496cd5ad59b17da6e4f050c50790585e"
+
+        # These infos are used by https://github.com/YunoHost/apps/blob/master/tools/autoupdate_app_sources/autoupdate_app_sources.py
+        # to auto-update the previous asset urls and sha256sum + manifest version
+        # assuming the upstream's code repo is on github and relies on tags or releases
+        # See the 'sources' resource documentation for more details
+
+        # autoupdate.strategy = "latest_github_tag" # Does it work with gitlab ?
+
+    [resources.system_user]
+    # This will provision/deprovision a unix system user
+
+    [resources.install_dir]
+    # This will create/remove the install dir as /var/www/$app
+    # and store the corresponding setting $install_dir
+
+    [resources.permissions]
+    # This will configure SSOwat permission for $domain/$path/
+    # The initial allowed group of user is configured via the init_main_permission question (public=visitors, private=all_users)
+    main.url = "/"
+
+    [resources.ports]
+    # This will pick a random port for reverse-proxying and store it as the $port setting
+    english
+    french
+    gunicorn
+    dmp_server_port
+
+    [resources.apt]
+    # This will automatically install/uninstall the following apt packages
+    packages = "python3-pip"
