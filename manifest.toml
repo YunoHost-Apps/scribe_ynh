@@ -87,4 +87,4 @@ ram.runtime = "5000M"
 
     [resources.apt]
     # This will automatically install/uninstall the following apt packages
-    packages = "python3-pip"
+    packages = "python3-pip, python3-venv"
