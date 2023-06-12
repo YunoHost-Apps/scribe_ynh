@@ -80,10 +80,10 @@ ram.runtime = "5000M"
 
     [resources.ports]
     # This will pick a random port for reverse-proxying and store it as the $port setting
-    english
-    french
-    gunicorn
-    dmp_server_port
+    english.exposed = false
+    french.exposed = false
+    gunicorn.exposed = false
+    dmp_server_port.exposed = false
 
     [resources.apt]
     # This will automatically install/uninstall the following apt packages
