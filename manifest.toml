@@ -10,7 +10,7 @@ version = "1.0~ynh1"
 maintainers = ["Lapineige"]
 
 [upstream]
-license = "AGLPv3"
+license = "AGPL-3.0-or-later"
 demo = "https://scribe.cemea.org/"
 code = "https://gitlab.cemea.org/mallette/scribe"
 
