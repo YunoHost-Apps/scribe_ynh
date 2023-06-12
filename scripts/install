@@ -50,7 +50,7 @@ chown -R $app:www-data "$install_dir"
 #=================================================
 ynh_script_progression --message="Installing python dependencies..." --weight=1
 
-pushd $final_path
+pushd $install_dir
   python3 -m venv venv
   . venv/bin/activate
   venv/bin/pip3 install --upgrade pip
@@ -59,7 +59,7 @@ pushd $final_path
 popd
 
 # Install DPM in a virtual environement
-pushd $final_path/punctuation-server
+pushd $install_dir/punctuation-server
   python3 -m venv venv
   . venv/bin/activate
   venv/bin/pip3 install -r requirements.txt # should only be flask for now, but just in case
