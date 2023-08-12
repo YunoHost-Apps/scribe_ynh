@@ -56,6 +56,7 @@ pushd $install_dir
   venv/bin/pip3 install --upgrade pip
   venv/bin/pip3 install vosk
   venv/bin/pip3 install -r requirements.txt # should only be flask for now, but just in case
+  deactivate
 popd
 
 # Install DPM in a virtual environement
@@ -64,6 +65,7 @@ pushd $install_dir/punctuation-server
   . venv/bin/activate
   venv/bin/pip3 install -r requirements.txt # should only be flask for now, but just in case
   # DMP_SERVER_INTERFACE=0.0.0.0 DMP_SERVER_PORT=$port_dmp_server_port python3 server.py # TODO : Replace by a systemd service
+  deactivate
 popd
 
 #=================================================
