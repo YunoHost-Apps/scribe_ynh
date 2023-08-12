@@ -1,0 +1,12 @@
+[Unit]
+Description=gunicorn instance to serve Scribe
+After=network.target
+
+[Service]
+User=$app
+Group=$app
+WorkingDirectory=/srv/scribe
+ExecStart=/srv/scribe/venv/bin/gunicorn --workers 4 --bind unix:/srv/scribe/scribe.sock "scribe:create_app()" --access-logfile - --error-logfile - --capture-output
+
+[Install]
+WantedBy=multi-user.target
