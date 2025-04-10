@@ -40,18 +40,18 @@ ynh_config_add_nginx
 
 # Create a dedicated systemd config
 ynh_config_add_systemd --service=$app-gunicorn --template=scribe-gunicorn
-yunohost service add $app-gunicorn --description="Scribe automated voice transcription : main process" --log="/var/log/$app/$app-gunicorn.log"
+yunohost service add $app-gunicorn --description="Scribe automated voice transcription: main process" --log="/var/log/$app/$app-gunicorn.log"
 
 # Create a dedicated systemd config for the punctuation server too (DMP)
 ynh_config_add_systemd --service=$app-DMP --template=scribe-DMP
-yunohost service add $app-DMP --description="Scribe automated voice transcription : DPM punctuation process" --log="/var/log/$app/$app_DMP.log"
+yunohost service add $app-DMP --description="Scribe automated voice transcription: DPM punctuation process" --log="/var/log/$app/$app_DMP.log"
 
 #=================================================
 # ADD A CONFIGURATION
 #=================================================
-#ynh_script_progression "Adding $app's configuration..."
+ynh_script_progression "Adding $app's configuration..."
 
-#ynh_config_add --template="some_config_file" --destination="$install_dir/some_config_file"
+ynh_config_add --template=".env" --destination="$install_dir/.env"
 
 #=================================================
 # START SYSTEMD SERVICE
