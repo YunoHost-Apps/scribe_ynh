@@ -17,21 +17,17 @@ ynh_setup_source --dest_dir="$install_dir"
 ynh_script_progression "Installing python dependencies..."
 
 pushd $install_dir
-  python3 -m venv venv
-  source venv/bin/activate
-  venv/bin/pip3 install --upgrade pip
-  venv/bin/pip3 install vosk
-  venv/bin/pip3 install -r requirements.txt # should only be flask for now, but just in case
-  deactivate
+    python3 -m venv $install_dir/venv
+    ynh_hide_warnings $install_dir/venv/bin/pip install --upgrade pip 
+    ynh_hide_warnings $install_dir/venv/bin/pip install install vosk
+    ynh_hide_warnings $install_dir/venv/bin/pip install install -r requirements.txt # should only be flask for now, but just in case
 popd
 
 # Install DPM in a virtual environement
 pushd $install_dir/punctuation-server
-  python3 -m venv venv
-  source venv/bin/activate
-  venv/bin/pip3 install -r requirements.txt # should only be flask for now, but just in case
+    python3 -m venv $install_dir/venv
+    ynh_hide_warnings $install_dir/venv/bin/pip install -r requirements.txt # should only be flask for now, but just in case
   # DMP_SERVER_INTERFACE=0.0.0.0 DMP_SERVER_PORT=$port_dmp_server_port python3 server.py # TODO : Replace by a systemd service
-  deactivate
 popd
 
 #=================================================
@@ -44,18 +40,18 @@ ynh_config_add_nginx
 
 # Create a dedicated systemd config
 ynh_config_add_systemd --service=$app-gunicorn --template=scribe-gunicorn
-yunohost service add $app --description="Scribe automated voice transcription : main process" --log="/var/log/$app/$app-gunicorn.log"
+yunohost service add $app-gunicorn --description="Scribe automated voice transcription : main process" --log="/var/log/$app/$app-gunicorn.log"
 
 # Create a dedicated systemd config for the punctuation server too (DMP)
 ynh_config_add_systemd --service=$app-DMP --template=scribe-DMP
-yunohost service add $app --description="Scribe automated voice transcription : DPM punctuation process" --log="/var/log/$app/$app_DMP.log"
+yunohost service add $app-DMP --description="Scribe automated voice transcription : DPM punctuation process" --log="/var/log/$app/$app_DMP.log"
 
 #=================================================
 # ADD A CONFIGURATION
 #=================================================
-ynh_script_progression "Adding $app's configuration..."
+#ynh_script_progression "Adding $app's configuration..."
 
-ynh_config_add --template="some_config_file" --destination="$install_dir/some_config_file"
+#ynh_config_add --template="some_config_file" --destination="$install_dir/some_config_file"
 
 #=================================================
 # START SYSTEMD SERVICE
@@ -69,4 +65,5 @@ ynh_systemctl --service=$app-DMP --action="start" --log_path="/var/log/$app/$app
 #=================================================
 # END OF SCRIPT
 #=================================================
+
 ynh_script_progression "Installation of $app completed"
