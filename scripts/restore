@@ -1,0 +1,43 @@
+#!/bin/bash
+
+source ../settings/scripts/_common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# RESTORE THE APP MAIN DIR
+#=================================================
+ynh_script_progression "Restoring the app main directory..."
+
+ynh_restore "$install_dir"
+
+#=================================================
+# RESTORE SYSTEM CONFIGURATIONS
+#=================================================
+ynh_script_progression "Restoring system configurations related to $app..."
+
+ynh_restore "/etc/nginx/conf.d/$domain.d/$app.conf"
+
+ynh_restore "/etc/systemd/system/$app-gunicorn"
+systemctl enable "$app-gunicorn" --quiet
+
+ynh_restore "/etc/systemd/system/$app-DMP"
+systemctl enable "$app-DMP" --quiet
+
+yunohost service add $app-gunicorn --description="Scribe automated voice transcription: main process" --log="/var/log/$app/$app-gunicorn.log"
+yunohost service add $app-DMP --description="Scribe automated voice transcription: DPM punctuation process" --log="/var/log/$app/$app_DMP.log"
+
+#=================================================
+# RELOAD NGINX AND PHP-FPM OR THE APP SERVICE
+#=================================================
+ynh_script_progression "Reloading NGINX web server and $app's service..."
+
+ynh_systemctl --service=$app-gunicorn --action="start" --log_path="/var/log/$app/$app-gunicorn.log"
+ynh_systemctl --service=$app-DMP --action="start" --log_path="/var/log/$app/$app-DMP.log"
+
+ynh_systemctl --service=nginx --action=reload
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression "Restoration completed for $app"

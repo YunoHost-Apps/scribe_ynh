@@ -1,0 +1,58 @@
+#!/bin/bash
+
+source _common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# STOP SYSTEMD SERVICE
+#=================================================
+ynh_script_progression "Stopping $app's systemd service..."
+
+ynh_systemctl --service=$app-gunicorn --action="stop" --log_path="/var/log/$app/$app-gunicorn.log"
+ynh_systemctl --service=$app-DMP --action="stop" --log_path="/var/log/$app/$app-DMP.log"
+
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+ynh_script_progression "Upgrading source files..."
+
+ynh_setup_source --dest_dir="$install_dir" --full_replace --keep=".env"
+
+#=================================================
+# REAPPLY SYSTEM CONFIGURATIONS
+#=================================================
+ynh_script_progression "Upgrading system configurations related to $app..."
+
+ynh_config_add_nginx
+
+ynh_config_add_systemd --service=$app-gunicorn --template=scribe-gunicorn
+ynh_config_add_systemd --service=$app-DMP --template=scribe-DMP
+
+yunohost service add $app-gunicorn --description="Scribe automated voice transcription: main process" --log="/var/log/$app/$app-gunicorn.log"
+yunohost service add $app-DMP --description="Scribe automated voice transcription: DPM punctuation process" --log="/var/log/$app/$app_DMP.log"
+
+#=================================================
+# INSTALL PYTHON DEPENDENCIES
+#=================================================
+ynh_script_progression "Installing Python dependencies..."
+
+pushd $install_dir
+    python3 -m venv $install_dir/venv
+    ynh_hide_warnings $install_dir/venv/bin/pip install --upgrade pip 
+    ynh_hide_warnings $install_dir/venv/bin/pip install install vosk
+    ynh_hide_warnings $install_dir/venv/bin/pip install install -r requirements.txt # should only be flask for now, but just in case
+popd
+
+#=================================================
+# START SYSTEMD SERVICE
+#=================================================
+ynh_script_progression "Starting $app's systemd service..."
+
+ynh_systemctl --service=$app-gunicorn --action="start" --log_path="/var/log/$app/$app-gunicorn.log"
+ynh_systemctl --service=$app-DMP --action="start" --log_path="/var/log/$app/$app-DMP.log"
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression "Upgrade of $app completed"
