@@ -1,11 +1,5 @@
 #!/bin/bash
 
-#=================================================
-# GENERIC START
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 source _common.sh
 source /usr/share/yunohost/helpers
 
@@ -30,7 +24,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Setting up source files..." --weight=1
+ynh_script_progression "Setting up source files..."
 
 ### `ynh_setup_source` is used to install an app from a zip or tar.gz file,
 ### downloaded from an upstream source, like a git repository.
@@ -39,16 +33,15 @@ ynh_script_progression --message="Setting up source files..." --weight=1
 # Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source --dest_dir="$install_dir"
 
-# $install_dir will automatically be initialized with some decent 
+# $install_dir will automatically be initialized with some decent
+
 # permission by default ... however, you may need to recursively reapply
 # ownership to all files such as after the ynh_setup_source step
-chown -R $app:www-data "$install_dir"
-
-
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R $app:www-data "$install_dir"
 #=================================================
 # INSTALL PYTHON DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Installing python dependencies..." --weight=1
+ynh_script_progression "Installing python dependencies..."
 
 pushd $install_dir
   python3 -m venv venv
@@ -71,17 +64,17 @@ popd
 #=================================================
 # SYSTEM CONFIGURATION
 #=================================================
-ynh_script_progression --message="Adding system configurations related to $app..." --weight=1
+ynh_script_progression "Adding system configurations related to $app..."
 
 # Create a dedicated NGINX config using the conf/nginx.conf template
-ynh_add_nginx_config
+ynh_config_add_nginx
 
 # Create a dedicated systemd config
-ynh_add_systemd_config --service=$app-gunicorn --template=scribe-gunicorn
+ynh_config_add_systemd --service=$app-gunicorn --template=scribe-gunicorn
 yunohost service add $app --description="Scribe automated voice transcription : main process" --log="/var/log/$app/$app-gunicorn.log"
 
 # Create a dedicated systemd config for the punctuation server too (DMP)
-ynh_add_systemd_config --service=$app-DMP --template=scribe-DMP
+ynh_config_add_systemd --service=$app-DMP --template=scribe-DMP
 yunohost service add $app --description="Scribe automated voice transcription : DPM punctuation process" --log="/var/log/$app/$app_DMP.log"
 
 ## TODO
@@ -94,7 +87,7 @@ yunohost service add $app --description="Scribe automated voice transcription : 
 #=================================================
 # ADD A CONFIGURATION
 #=================================================
-ynh_script_progression --message="Adding a configuration file..." --weight=1
+ynh_script_progression "Adding $app's configuration..."
 
 ### You can add specific configuration files.
 ###
@@ -102,39 +95,37 @@ ynh_script_progression --message="Adding a configuration file..." --weight=1
 ### The template may contain strings such as __FOO__ or __FOO_BAR__,
 ### which will automatically be replaced by the values of $foo and $foo_bar
 ###
-### ynh_add_config will also keep track of the config file's checksum,
+### ynh_config_add will also keep track of the config file's checksum,
 ### which later during upgrade may allow to automatically backup the config file
 ### if it's found that the file was manually modified
 ###
-### Check the documentation of `ynh_add_config` for more info.
+### Check the documentation of `ynh_config_add` for more info.
 
-ynh_add_config --template="some_config_file" --destination="$install_dir/some_config_file"
+ynh_config_add --template="some_config_file" --destination="$install_dir/some_config_file"
 
 # FIXME: this should be handled by the core in the future
 # You may need to use chmod 600 instead of 400,
 # for example if the app is expected to be able to modify its own config
-chmod 400 "$install_dir/some_config_file"
-chown $app:$app "$install_dir/some_config_file"
+#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 400 "$install_dir/some_config_file"
+#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown $app:$app "$install_dir/some_config_file"
 
 ### For more complex cases where you want to replace stuff using regexes,
-### you shoud rely on ynh_replace_string (which is basically a wrapper for sed)
+### you shoud rely on ynh_replace (which is basically a wrapper for sed)
 ### When doing so, you also need to manually call ynh_store_file_checksum
 ###
-### ynh_replace_string --match_string="match_string" --replace_string="replace_string" --target_file="$install_dir/some_config_file"
-### ynh_store_file_checksum --file="$install_dir/some_config_file"
+### ynh_replace --match="match_string" --replace="replace_string" --file="$install_dir/some_config_file"
+### ynh_store_file_checksum "$install_dir/some_config_file"
 
-#=================================================
-# GENERIC FINALIZATION
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting a systemd service..." --weight=1
+ynh_script_progression "Starting $app's systemd service..."
 
 # Start a systemd service
-ynh_systemd_action --service_name=$app-gunicorn --action="start" --log_path="/var/log/$app/$app-gunicorn.log"
-ynh_systemd_action --service_name=$app-DMP --action="start" --log_path="/var/log/$app/$app-DMP.log"
+ynh_systemctl --service=$app-gunicorn --action="start" --log_path="/var/log/$app/$app-gunicorn.log"
+ynh_systemctl --service=$app-DMP --action="start" --log_path="/var/log/$app/$app-DMP.log"
 
 #=================================================
 # END OF SCRIPT
 #=================================================
-ynh_script_progression --message="Installation of $app completed" --last
+ynh_script_progression "Installation of $app completed"
